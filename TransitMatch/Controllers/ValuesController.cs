@@ -14,18 +14,33 @@ namespace TransitMatch.Controllers
     public class ValuesController : ControllerBase
     {
         static KeyVaultClient kvc = null;
-        static string azureMapsUrl = System.Environment.GetEnvironmentVariable("AZURE_MAPS_URL");
-        static Microsoft.Azure.KeyVault.Models.SecretBundle azureMapsSecret = null;
+        static string azureKeyVaultUrl = System.Environment.GetEnvironmentVariable("AZURE_KEYVAULT_URL");
+        static string azureMapsSubscriptionKey = null;
         private static readonly System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
 
         // GET api/values
         [HttpGet]
         public async Task<ActionResult<System.Net.Http.HttpResponseMessage>> Get()
         {
-            azureMapsSecret = await DoVault();
-            System.Net.Http.HttpResponseMessage response = await client.GetAsync(
-                $"https://atlas.microsoft.com/mapData/upload?subscription-key={azureMapsSecret}&api-version=1.0&dataFormat=geojson"
+            azureMapsSubscriptionKey = await DoVault();
+            Console.WriteLine("HERE!!");
+            Console.WriteLine(azureKeyVaultUrl);
+            string jsonString;
+            using (System.IO.StreamReader reader = new System.IO.StreamReader(Request.Body, System.Text.Encoding.UTF8))
+            {
+                jsonString = await reader.ReadToEndAsync();
+            }
+            var stringContent = new System.Net.Http.StringContent(jsonString, System.Text.Encoding.UTF8, "application/json");
+
+            System.Net.Http.HttpResponseMessage response = await client.PostAsync(
+                $"https://atlas.microsoft.com/mapData/upload?subscription-key={azureMapsSubscriptionKey}&api-version=1.0&dataFormat=geojson",
+                stringContent
                 );
+
+            // System.Net.Http.HttpResponseMessage response = await client.GetAsync(
+            //     $"https://atlas.microsoft.com/route/directions/json?subscription-key={azureMapsSubscriptionKey}&api-version=1.0&query=52.50931,13.42936:52.50274,13.43872"
+            // );
+            Console.WriteLine($"Maps Key: {azureMapsSubscriptionKey}");
             return response;
         }
 
@@ -69,10 +84,15 @@ namespace TransitMatch.Controllers
             return result.AccessToken;
         }
 
-        private static async Task<SecretBundle> DoVault()
+        private static async Task<string> DoVault()
         {
             kvc = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetToken));
-            return await kvc.GetSecretAsync("Maps");
+            Console.WriteLine($"KVC: {kvc}");
+            string keyVaultUri = $"{azureKeyVaultUrl}secrets/Maps";
+            Microsoft.Azure.KeyVault.Models.SecretBundle secret = await kvc.GetSecretAsync(azureKeyVaultUrl, "Maps");
+            Console.WriteLine("secret: " + secret.Value);
+            return secret.Value != null ? secret.Value : string.Empty;
+
         }
     }
 }
