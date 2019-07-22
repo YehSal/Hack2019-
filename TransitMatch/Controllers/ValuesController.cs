@@ -15,14 +15,18 @@ namespace TransitMatch.Controllers
     {
         static KeyVaultClient kvc = null;
         static string azureMapsUrl = System.Environment.GetEnvironmentVariable("AZURE_MAPS_URL");
-
+        static Microsoft.Azure.KeyVault.Models.SecretBundle azureMapsSecret = null;
+        private static readonly System.Net.Http.HttpClient client = new System.Net.Http.HttpClient();
 
         // GET api/values
         [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
+        public async Task<ActionResult<System.Net.Http.HttpResponseMessage>> Get()
         {
-            DoVault();
-            return new string[] { "value1", "value2" };
+            azureMapsSecret = await DoVault();
+            System.Net.Http.HttpResponseMessage response = await client.GetAsync(
+                $"https://atlas.microsoft.com/mapData/upload?subscription-key={azureMapsSecret}&api-version=1.0&dataFormat=geojson"
+                );
+            return response;
         }
 
         // GET api/values/5
@@ -65,46 +69,10 @@ namespace TransitMatch.Controllers
             return result.AccessToken;
         }
 
-        private static void DoVault()
+        private static async Task<SecretBundle> DoVault()
         {
             kvc = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetToken));
-            Console.WriteLine("Here");
-            Console.WriteLine(kvc.GetSecretAsync("Maps"));
-
-            // write
-            // writeKeyVault();
-            // Console.WriteLine("Press enter after seeing the bundle value show up");
-            // Console.ReadLine();
-
-            // SecretBundle secret = Task.Run(() => kvc.GetSecretAsync(azureMapsUrl +
-            //     @"/secrets/" + "Maps")).ConfigureAwait(false).GetAwaiter().GetResult();
-            // Console.WriteLine(secret.Tags["Test1"].ToString());
-            // Console.WriteLine(secret.Tags["Test2"].ToString());
-            // Console.WriteLine(secret.Tags["CanBeAnything"].ToString());
-
-            // Console.ReadLine();
-        }
-
-        private static async void writeKeyVault()// string szPFX, string szCER, string szPassword)
-        {
-            SecretAttributes attribs = new SecretAttributes
-            {
-                Enabled = true//,
-                              //Expires = DateTime.UtcNow.AddYears(2), // if you want to expire the info
-                              //NotBefore = DateTime.UtcNow.AddDays(1) // if you want the info to 
-                              // start being available later
-            };
-
-            IDictionary<string, string> alltags = new Dictionary<string, string>();
-            alltags.Add("Test1", "This is a test1 value");
-            alltags.Add("Test2", "This is a test2 value");
-            alltags.Add("CanBeAnything", "Including a long encrypted string if you choose");
-            string TestName = "TestSecret";
-            string TestValue = "searchValue"; // this is what you will use to search for the item later
-            string contentType = "SecretInfo"; // whatever you want to categorize it by; you name it
-            SecretBundle bundle = await kvc.SetSecretAsync
-               (azureMapsUrl, TestName, TestValue, alltags, contentType, attribs);
-            Console.WriteLine("Bundle:" + bundle.Tags["Test1"].ToString());
+            return await kvc.GetSecretAsync("Maps");
         }
     }
 }
