@@ -13,8 +13,6 @@
     <PackageReference Include="AzureMapsRestToolkit" Version="4.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Impl\" />
     <Folder Include="Common\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 </Project>
