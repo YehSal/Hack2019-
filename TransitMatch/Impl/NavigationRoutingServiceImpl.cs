@@ -33,6 +33,9 @@ namespace TransitMatch.Impl
                await _routeSegmentationService.GetSegments(navigationParams.StartPoint, navigationParams.EndPoint);
             var costMatrix = await this.GenerateCostMatrix(routeSegments, navigationParams.Optimizer);
             var optimalRoute = _pathFindingService.GetOptimalPath(routeSegments, costMatrix);
+
+            // TODO: return optimalRoute
+            // TODO: Remove below test debug return
             Console.WriteLine(optimalRoute);
             Console.WriteLine(navigationParams.ToString());
             var testResponse = new List<RoutingSegment>
