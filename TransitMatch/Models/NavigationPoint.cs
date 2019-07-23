@@ -1,20 +1,20 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Newtonsoft.Json;
 
 namespace TransitMatch.Models
 {
     public class NavigationPoint
     {
         [Required]
-        [Display(Name = "Latitude")]
-        public long LatitudeInt64 { get; }
+        public long Latitude { get; }
         [Required]
-        [Display(Name = "Longitude")]
-        public long LongitudeInt64 { get; }
+        public long Longitude { get; }
 
-        public NavigationPoint(long latitudeInt64, long longitudeInt64)
+        [JsonConstructor]
+        public NavigationPoint(long latitude, long longitude)
         {
-            LatitudeInt64 = latitudeInt64;
-            LongitudeInt64 = longitudeInt64;
+            Latitude = latitude;
+            Longitude = longitude;
         }
     }
 }

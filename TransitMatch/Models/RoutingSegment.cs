@@ -17,13 +17,4 @@ namespace TransitMatch.Models
         public NavigationMode SegmentNavigationMode { get; }
 
     }
-
-    public enum NavigationMode
-    {
-        Walk,
-        Transit,
-        Rideshare,
-        Drive,
-        Bike,
-    }
 }
