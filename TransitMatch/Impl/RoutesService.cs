@@ -1,32 +1,32 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+using AzureMapsToolkit.Common;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using AzureMapsToolkit.Common;
-using System.Collections.Generic;
 using TransitMatch.Models;
+using TransitMatch.Services;
 
-namespace TransitMatch.Controllers
+namespace TransitMatch.Impl
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class RidesController : ControllerBase
+    public class RoutesService : IRoutesService
     {
-        private static HttpClient client = new HttpClient();
-        static KeyVaultClient kvc = null;
-        static string azureMapsUrl = System.Environment.GetEnvironmentVariable("AZURE_MAPS_URL");
-        static Microsoft.Azure.KeyVault.Models.SecretBundle azureMapsSecret = null;
-        private readonly string AzureMapsSubscriptionKey = "yXcIJq3mB7bC-mdkyuKytBmnHGLHpVK2ewYL0sFJUbQ";
+        private readonly HttpClient client;
+        private IKeyVaultClient keyVaultClient;
 
-        // GET api/rides
-        // https://localhost:5001/api/rides/requestRide?lat1=52.50931&lon1=13.42936&lat2=52.50274&lon2=13.43872
-        [HttpGet]
-        public async Task<ActionResult<List<RouteDirectionsResult>>> Get(double lat1, double lon1, double lat2, double lon2, NavigationMode mode)
+        public RoutesService(HttpClient client, IKeyVaultClient keyVaultClient)
+        {
+            client = client ?? throw new ArgumentNullException(nameof(client));
+            // keyVaultClient = keyVaultClient ?? throw new ArgumentNullException(nameof(client));
+        }
+
+        public async Task<List<RouteDirectionsResult>> GetRidesAsync(double lat1, double lon1, double lat2, double lon2, NavigationMode mode)
         {
             // TODO: Factor in the modes
+            // TODO: Factor in the traffic
+            // TODO: Look for other query params to use
             var routes = new List<RouteDirectionsResult>();
             var response = await GetRoutes(lat1, lon1, lat2, lon2);
             var routesResponse = await response.Content.ReadAsAsync<RouteDirectionsResponse>();
@@ -37,7 +37,7 @@ namespace TransitMatch.Controllers
             return routes;
         }
 
-        public async Task<HttpResponseMessage> GetRoutes(double lat1, double lon1, double lat2, double lon2)
+        private async Task<HttpResponseMessage> GetRoutes(double lat1, double lon1, double lat2, double lon2)
         {
             var queryString = $"https://atlas.microsoft.com/route/directions/json?subscription-key={AzureMapsSubscriptionKey}&api-version=1.0&query={lat1},{lon1}:{lat2},{lon2}";
             Console.WriteLine(queryString);
@@ -45,7 +45,7 @@ namespace TransitMatch.Controllers
             return response;
         }
 
-        public static async Task<string> GetToken(string authority, string resource, string scope)
+        private async Task<string> GetToken(string authority, string resource, string scope)
         {
             var authContext = new AuthenticationContext(authority);
             ClientCredential clientCred = new ClientCredential(
@@ -60,10 +60,10 @@ namespace TransitMatch.Controllers
             return result.AccessToken;
         }
 
-        private static async Task<SecretBundle> DoVault()
+        private async Task<SecretBundle> DoVault()
         {
-            kvc = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetToken));
-            return await kvc.GetSecretAsync("Maps");
+            keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetToken));
+            return await keyVaultClient.GetSecretAsync("Maps");
         }
     }
 }
