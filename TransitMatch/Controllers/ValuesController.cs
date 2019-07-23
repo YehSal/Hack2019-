@@ -31,7 +31,7 @@ namespace TransitMatch.Controllers
                 jsonString = await reader.ReadToEndAsync();
             }
             var stringContent = new System.Net.Http.StringContent(jsonString, System.Text.Encoding.UTF8, "application/json");
-
+            Console.WriteLine($"stringContent: {stringContent}");
             System.Net.Http.HttpResponseMessage response = await client.PostAsync(
                 $"https://atlas.microsoft.com/mapData/upload?subscription-key={azureMapsSubscriptionKey}&api-version=1.0&dataFormat=geojson",
                 stringContent
@@ -92,7 +92,6 @@ namespace TransitMatch.Controllers
             Microsoft.Azure.KeyVault.Models.SecretBundle secret = await kvc.GetSecretAsync(azureKeyVaultUrl, "Maps");
             Console.WriteLine("secret: " + secret.Value);
             return secret.Value != null ? secret.Value : string.Empty;
-
         }
     }
 }

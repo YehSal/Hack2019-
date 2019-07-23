@@ -9,8 +9,7 @@ namespace TransitMatch.Impl.CostFunctions
     {
         public async Task<double> GetCost(NavigationPoint start, NavigationPoint end, OptimizationParam optimizer)
         {
-            // TODO: Implement
-            return 0;
+            return 2;
         }
     }
 }

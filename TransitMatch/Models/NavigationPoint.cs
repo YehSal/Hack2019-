@@ -6,9 +6,9 @@ namespace TransitMatch.Models
     public class NavigationPoint
     {
         [Required]
-        public long Latitude { get; }
+        public long Latitude { get; set;}
         [Required]
-        public long Longitude { get; }
+        public long Longitude { get; set;}
 
         [JsonConstructor]
         public NavigationPoint(long latitude, long longitude)

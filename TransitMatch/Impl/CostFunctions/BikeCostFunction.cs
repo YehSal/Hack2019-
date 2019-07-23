@@ -9,7 +9,11 @@ namespace TransitMatch.Impl.CostFunctions
     {
         public async Task<double> GetCost(NavigationPoint start, NavigationPoint end, OptimizationParam optimizer)
         {
-            // TODO: Implement
+            int monetaryCost = 0; // No cost if you own a bike
+
+            // Call API from start to end to figure how much time it'll take 
+            
+
             return 0;
         }
     }
