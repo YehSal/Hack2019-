@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using TransitMatch.Models;
+using TransitMatch.Services;
 
 namespace TransitMatch.Controllers
 {
@@ -11,16 +12,16 @@ namespace TransitMatch.Controllers
     [ApiController]
     public class MainController : ControllerBase
     {
-        [HttpPost]
-        public ActionResult<List<RoutingSegment>> Post(NavigationRequestParam requestParam)
+        private readonly INavigationRoutingService _navigationRoutingService;
+        public MainController(INavigationRoutingService navigationRoutingService)
         {
-            Console.WriteLine(requestParam.ToString());
-            var testResponse = new List<RoutingSegment>
-            {
-                new RoutingSegment(new NavigationPoint(0, 0), new NavigationPoint(10, 10),
-                    NavigationMode.Walk)
-            };
-            return testResponse;
+            _navigationRoutingService = navigationRoutingService;
+        }
+
+        [HttpPost]
+        public Task<ActionResult<List<RoutingSegment>>> Post(NavigationRequestParam requestParam)
+        {
+            return _navigationRoutingService.GetOptimalRoute(requestParam);
         }
     }
 }
