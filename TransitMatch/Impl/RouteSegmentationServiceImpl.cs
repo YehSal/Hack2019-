@@ -9,6 +9,7 @@ namespace TransitMatch.Impl
 {
     public class RouteSegmentationServiceImpl : IRouteSegmentationService
     {
+       //  private readonly AzureRoutingService _azureRoutingService;
         public async Task<List<Tuple<NavigationPoint, NavigationPoint>>> GetSegments(NavigationPoint startPoint,
             NavigationPoint endPoint)
         {

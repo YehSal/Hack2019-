@@ -31,7 +31,7 @@ namespace TransitMatch.Impl
             Console.WriteLine("Finding your optimal path!");
             var routeSegments =
                await _routeSegmentationService.GetSegments(navigationParams.StartPoint, navigationParams.EndPoint);
-            var costMatrix = await this.GenerateCostMatrix(routeSegments, navigationParams.Optimizer);
+            var costMatrix = await GenerateCostMatrix(routeSegments, navigationParams.Optimizer);
             var optimalRoute = _pathFindingService.GetOptimalPath(routeSegments, costMatrix);
 
             // TODO: return optimalRoute
@@ -59,7 +59,7 @@ namespace TransitMatch.Impl
                {
                    var j1 = j;
                    var i1 = i;
-                   costFunctionTasks[i * j] = Task.Run(() => _navigationCostGeneratorService.GetCostForSegment(
+                   costFunctionTasks[routeSegments.Count * i + j] = Task.Run(() => _navigationCostGeneratorService.GetCostForSegment(
                        new RoutingSegment(routeSegments[j1].Item1,
                            routeSegments[j1].Item2,
                            navigationModes[i1]),
@@ -70,7 +70,7 @@ namespace TransitMatch.Impl
             var result = await Task.WhenAll(costFunctionTasks);
             for (var i = 0; i < result.Length; i++)
             {
-                costMatrix[i % navigationModes.Length, i / navigationModes.Length] = result[i];
+                costMatrix[i % navigationModes.Length,(int) (i / navigationModes.Length)] = result[i];
             }
             return costMatrix;
         }
