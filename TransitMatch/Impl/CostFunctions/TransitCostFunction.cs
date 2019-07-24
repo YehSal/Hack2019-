@@ -12,4 +12,4 @@ namespace TransitMatch.Impl.CostFunctions
             return 2;
         }
     }
-}
+} 

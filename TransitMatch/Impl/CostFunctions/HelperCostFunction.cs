@@ -5,7 +5,6 @@ using TransitMatch.Services;
 using System.Collections.Generic;
 using AzureMapsToolkit.Common;
 using System.Linq;
-
 namespace TransitMatch.Impl.CostFunctions
 {
     public class HelperCostFunction : IGetAdjPointsFunction
@@ -46,10 +45,18 @@ namespace TransitMatch.Impl.CostFunctions
                 {
                     if (mode == "Transit")
                     {
+                        // Constant cost of $2 for buses
                         legWithCostAndMode.Add(new RouteLegWithCost(allLegsAdjPoints[i][j], 2, "Transit"));
                     }
                     else if (mode == "Rideshare")
                     {
+                        double initialCost = 0.9;
+                        double serviceFee = 1.9;
+                        var point1 = new GeoCoordinate(allLegsAdjPoints[i][j].Item1.Latitude, allLegsAdjPoints[i][j].Item1.Longitude) ;
+                        var long1 = allLegsAdjPoints[i][j].Item1.Longitude;
+                        var lat2 = allLegsAdjPoints[i][j].Item2.Latitude;
+                        var long2 = allLegsAdjPoints[i][j].Item2.Longitude;
+                        double costPerMile = 0.9 *
                         legWithCostAndMode.Add(new RouteLegWithCost(allLegsAdjPoints[i][j], 10, "Rideshare"));
                     }
                 }
