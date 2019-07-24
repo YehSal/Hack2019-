@@ -1,16 +1,27 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AzureMapsToolkit.Common;
 using TransitMatch.Models;
 using TransitMatch.Services;
 
 namespace TransitMatch.Impl.CostFunctions
 {
-    public class WalkCostFunction : ICostFunction
+    public class WalkCostFunction : BaseCostFunction
     {
-        public async Task<double> GetCost(NavigationPoint start, NavigationPoint end, OptimizationParam optimizer)
+        public WalkCostFunction(IMapsService mapsService) : base(mapsService)
         {
-            // TODO: Implement
+        }
+
+        protected override double EstimateMonetaryCost(RouteDirectionsSummary routeDirectionsSummary)
+        {
             return 0;
         }
+
+        protected override double EstimateTimeCost(RouteDirectionsSummary routeDirectionsSummary)
+        {
+            return routeDirectionsSummary.TravelTimeInSeconds * 4;
+        }
+
+        protected override NavigationMode NavigationMode => NavigationMode.Walk;
     }
 }

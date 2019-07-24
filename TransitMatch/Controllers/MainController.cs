@@ -19,7 +19,7 @@ namespace TransitMatch.Controllers
         }
 
         [HttpPost]
-        public Task<ActionResult<List<RoutingSegment>>> Post(NavigationRequestParam requestParam)
+        public Task<ActionResult<List<RoutingSegmentResult>>> Post(NavigationRequestParam requestParam)
         {
             return _navigationRoutingService.GetOptimalRoute(requestParam);
         }

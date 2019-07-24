@@ -13,7 +13,7 @@ namespace TransitMatch.Impl
             _costFunctionFactory = costFunctionFactory;
         }
 
-        public Task<double> GetCostForSegment(RoutingSegment segment, OptimizationParam optimizer)
+        public Task<RoutingSegmentResult> GetCostForSegment(RoutingSegment segment, OptimizationParam optimizer)
         {
             var costFunction = _costFunctionFactory.GetCostFunctionByType(segment.SegmentNavigationMode);
             return costFunction.GetCost(segment.SegmentStart, segment.SegmentEnd, optimizer);

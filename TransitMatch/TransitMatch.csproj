@@ -12,6 +12,7 @@
     <PackageReference Include="Microsoft.Azure.Management.Maps" Version="1.0.2" />
     <PackageReference Include="AzureMapsLite" Version="0.9.4-beta" />
     <PackageReference Include="AzureMapsRestToolkit" Version="4.0.2" />
+    <PackageReference Include="QuickGraph" Version="3.6.61119.7" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Common\" />

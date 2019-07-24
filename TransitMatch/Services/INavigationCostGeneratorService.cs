@@ -6,6 +6,6 @@ namespace TransitMatch.Services
 {
     public interface INavigationCostGeneratorService
     {
-        Task<double> GetCostForSegment(RoutingSegment segment, OptimizationParam optimizer);
+        Task<RoutingSegmentResult> GetCostForSegment(RoutingSegment segment, OptimizationParam optimizer);
     }
 }
