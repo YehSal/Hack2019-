@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using AzureMapsToolkit.Common;
 using Microsoft.Azure.KeyVault;
@@ -9,8 +8,6 @@ using Microsoft.Azure.KeyVault.Models;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using TransitMatch.Models;
 using TransitMatch.Services;
-
-using System.Linq;
 
 namespace TransitMatch.Impl
 {
@@ -30,6 +27,7 @@ namespace TransitMatch.Impl
 
         public RoutesService(HttpClient client, IKeyVaultClient keyVaultClient)
         {
+            // TODO: Fix this
             // this.client = client ?? throw new ArgumentNullException(nameof(client));
             // keyVaultClient = keyVaultClient ?? throw new ArgumentNullException(nameof(client));
         }
