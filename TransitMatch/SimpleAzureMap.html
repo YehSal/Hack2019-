@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title></title>
 
     <meta charset="utf-8" />
-    
+
     <!-- Ensures that IE and Edge uses the latest version and doesn't emulate an older version -->
     <meta http-equiv="x-ua-compatible" content="IE=Edge" />
 
@@ -12,56 +13,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 
     <!-- Add references to the Azure Maps Map control JavaScript and CSS files. -->
-    <link rel="stylesheet" href="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.css" type="text/css" />
+    <link rel="stylesheet" href="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.css"
+        type="text/css" />
     <script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas.min.js"></script>
     <script src="https://atlas.microsoft.com/sdk/javascript/mapcontrol/2/atlas-service.min.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-  
-  <style>
-    html, body {
-      margin: 0;
-    }
-    
-    #myMap {
-      height: 100vh;
-      width: 100vw;
-    }
-  </style>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+        }
+
+        #myMap {
+            height: 100vh;
+            width: 100vw;
+        }
+    </style>
 </head>
+
 <body>
     <div id="myMap"></div>
-    
+
     <script type='text/javascript'>
 
-        // POST TO api/main
-        // Send the start location, end location, and optimizer (0-10)
-        // Get back a list of points [{type, [{x, y}, {x, y}]}]
-        // 47.6445277,-122.1391559
-        // 47.60972,-122.3443816
-
-        var routes = axios.post('http://localhost:5000/api/main', {
-            StartPoint: {latitude: 47.6445277, longitude: -122.1391559},
-            EndPoint: {latitude: 47.60972, longitude: -122.3443816},
-            Optimizer: 5
-        }).then(function(response) {
-            return response.data;
-        })
-        .catch(function (error) {
-            console.log("Error calling application api");
-            console.log(error);
-        });
-        
-        routes.then(function(sampleRoutes) {
-            sampleRoutes.forEach(function(route) {
-                console.log("segment information");
-                console.log(route["mode"]);
-                console.log(route["routePoints"]);
-                console.log(route["cost"]);
-
-                // TODO: Call the function to put the data on the map
-            });
-        });
-    
         // Get an Azure Maps key at https://azure.com/maps.
         var subscriptionKey = 'yXcIJq3mB7bC-mdkyuKytBmnHGLHpVK2ewYL0sFJUbQ';
         // Use SubscriptionKeyCredential with a subscription key.
@@ -70,7 +45,90 @@
         var pipeline = atlas.service.MapsURL.newPipeline(subscriptionKeyCredential, {
             retryOptions: { maxTries: 4 } // Retry options
         });
-        
+
+        // Construct the RouteURL object
+        var routeURL = new atlas.service.RouteURL(pipeline);
+
+        async function getRoutes() {
+            // POST TO api/main
+            // Send the start location, end location, and optimizer (0-10)
+            // Get back a list of points [{type, [{x, y}, {x, y}]}]
+            // 47.6445277,-122.1391559
+            // 47.60972,-122.3443816   
+            try {
+                const res = await axios.post('http://localhost:5000/api/main', {
+                    StartPoint: { latitude: 47.6445277, longitude: -122.1391559 },
+                    EndPoint: { latitude: 47.60972, longitude: -122.3443816 },
+                    Optimizer: 5
+                });
+                return res.data;
+            } catch (err) {
+                console.log("Error calling application api");
+                console.log(error);
+                return [];
+            }
+        }
+
+        async function displayRoutes(sampleRoutes, map, datasource) {
+            sampleRoutes.forEach(async function (route) {
+                console.log("Displaying Segment Information");
+                console.log(route);
+                console.log(route["mode"]);
+                console.log(route["routePoints"]);
+                console.log(route["cost"]);
+
+                try {
+                    await drawRoute(route, map, datasource);
+                } catch (err) {
+                    console.log("Error Drawing Route");
+                    console.log(err);
+                }
+            });
+        }
+
+        async function drawRoute(route, map, datasource) {
+            var startPoint = route.routePoints[0];
+            var endPoint = route.routePoints[route.routePoints.length - 1];
+            var routeMode = route.mode;
+            console.log("Draw Route");
+            console.log(startPoint);
+            console.log(endPoint);
+            console.log(routeMode);
+            console.log(route);
+
+            var lineLayer = new atlas.layer.LineLayer(dataSource, null, {
+                strokeColor: '#b92236',
+                strokeWidth: 10,
+                lineJoin: 'round',
+                lineCap: 'round'
+            });
+            //Render the route line under the road labels.
+            map.layers.add(lineLayer, 'labels');
+
+            //Start and end point input to the routeURL
+            var coordinates = [[startPoint.longitude, startPoint.latitude], [endPoint.longitude, endPoint.latitude]];
+            try {
+                directions = await routeURL.calculateRouteDirections(atlas.service.Aborter.timeout(10000), coordinates)
+                console.log("got directions!");
+                console.log(directions);
+            } catch (err) {
+                console.log("Error calling calculateRouteDirections API");
+                console.log(err);
+            }
+
+            // Inject optimal route
+            //Get data features from response
+            var data = directions.geojson.getFeatures();
+            console.log('getFeatures()');
+            console.log(data);
+            dataSource.add(data);
+
+            map.setCamera({
+                bounds: data.bbox,
+                padding: 20
+            });
+        }
+
         // Create a new map
         var map = new atlas.Map('myMap', {
             center: [-122.1391559, 47.6445277],
@@ -81,18 +139,17 @@
                 subscriptionKey: 'yXcIJq3mB7bC-mdkyuKytBmnHGLHpVK2ewYL0sFJUbQ'
             }
         });
-        
-        // Construct the RouteURL object
-        var routeURL = new atlas.service.RouteURL(pipeline);
 
         // Wait until the map resources are ready.
-        map.events.add('ready', function () {
-            /* Show traffic on the map using the traffic options*/ 
+        map.events.add('ready', async function () {
+            /* Show traffic on the map using the traffic options*/
             map.setTraffic({
                 incidents: true,
                 flow: 'absolute'
             });
-        
+
+            responseData = await getRoutes();
+
             dataSource = new atlas.source.DataSource();
             map.sources.add(dataSource);
 
@@ -122,42 +179,45 @@
 
             var symbolLayer = new atlas.layer.SymbolLayer(dataSource, null, {
                 iconOptions: {
-                image: ['get', 'icon'],
-                allowOverlap: true
+                    image: ['get', 'icon'],
+                    allowOverlap: true
                 },
                 textOptions: {
-                textField: ['get', 'title'],
-                offset: [0, 1.2]
+                    textField: ['get', 'title'],
+                    offset: [0, 1.2]
                 },
                 filter: ['any', ['==', ['geometry-type'], 'Point'], ['==', ['geometry-type'], 'MultiPoint']] //Only render Point or MultiPoints in this layer.
             });
             map.layers.add(symbolLayer);
 
             //Start and end point input to the routeURL
-            var coordinates= [[startPoint.geometry.coordinates[0],
-                                startPoint.geometry.coordinates[1]], 
-                                [endPoint.geometry.coordinates[0], 
-                                endPoint.geometry.coordinates[1]]];
-            
+            var coordinates = [[startPoint.geometry.coordinates[0],
+            startPoint.geometry.coordinates[1]],
+            [endPoint.geometry.coordinates[0],
+            endPoint.geometry.coordinates[1]]];
+
+
+            displayRoutes(responseData, map, dataSource).then(function(){console.log("success");});
+
             routeURL.calculateRouteDirections(atlas.service.Aborter.timeout(10000), coordinates).then((directions) => {
+                console.log("directions");
                 console.log(directions);
 
+                // Inject optimal route
                 //Get data features from response
-                var data = directions.geojson.getFeatures(); 
+                var data = directions.geojson.getFeatures();
+                console.log(`getFeatures():`);
+                console.log(data);
                 dataSource.add(data);
 
                 map.setCamera({
-                bounds: data.bbox,
-                padding: 20
+                    bounds: data.bbox,
+                    padding: 20
                 });
-            
-            map.setCamera({
-                bounds: data.bbox,
-                padding: 20
             });
         });
-    });
 
     </script>
 </body>
+
 </html>
