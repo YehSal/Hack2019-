@@ -45,7 +45,6 @@
         var pipeline = atlas.service.MapsURL.newPipeline(subscriptionKeyCredential, {
             retryOptions: { maxTries: 4 } // Retry options
         });
-
         // Construct the RouteURL object
         var routeURL = new atlas.service.RouteURL(pipeline);
 
@@ -56,20 +55,20 @@
             // 47.6445277,-122.1391559
             // 47.60972,-122.3443816   
             try {
-                const res = await axios.post('http://localhost:5000/api/main', {
+                const response = await axios.post('http://localhost:5000/api/main', {
                     StartPoint: { latitude: 47.6445277, longitude: -122.1391559 },
                     EndPoint: { latitude: 47.60972, longitude: -122.3443816 },
                     Optimizer: 5
                 });
-                return res.data;
+                return response.data;
             } catch (err) {
                 console.log("Error calling application api");
-                console.log(error);
+                console.log(err);
                 return [];
             }
         }
 
-        async function displayRoutes(sampleRoutes, map, datasource) {
+        async function displayRoutes(sampleRoutes, map, dataSource) {
             sampleRoutes.forEach(async function (route) {
                 console.log("Displaying Segment Information");
                 console.log(route);
@@ -78,7 +77,7 @@
                 console.log(route["cost"]);
 
                 try {
-                    await drawRoute(route, map, datasource);
+                    await drawRoute(route, map, dataSource);
                 } catch (err) {
                     console.log("Error Drawing Route");
                     console.log(err);
@@ -86,7 +85,7 @@
             });
         }
 
-        async function drawRoute(route, map, datasource) {
+        async function drawRoute(route, map, dataSource) {
             var startPoint = route.routePoints[0];
             var endPoint = route.routePoints[route.routePoints.length - 1];
             var routeMode = route.mode;
@@ -96,14 +95,28 @@
             console.log(routeMode);
             console.log(route);
 
-            var lineLayer = new atlas.layer.LineLayer(dataSource, null, {
-                strokeColor: '#b92236',
-                strokeWidth: 10,
-                lineJoin: 'round',
-                lineCap: 'round'
-            });
-            //Render the route line under the road labels.
-            map.layers.add(lineLayer, 'labels');
+            var strokeColor = '#b92236';
+            switch(routeMode)
+            {
+                case "transit": 
+                case "Transit": 
+                case "bus": 
+                case "Bus": 
+                    strokeColor = '#1cad21';
+                    break;
+                case "car": 
+                case "Car": 
+                case "rideshare": 
+                case "RideShare": 
+                case "Rideshare":
+                case "Ride Share": 
+                case "ride share":
+                    strokeColor = '#1b49c4';
+                    break;
+                default: 
+                    strokeColor = '#b92236';
+                    break;
+            }
 
             //Start and end point input to the routeURL
             var coordinates = [[startPoint.longitude, startPoint.latitude], [endPoint.longitude, endPoint.latitude]];
@@ -116,12 +129,30 @@
                 console.log(err);
             }
 
-            // Inject optimal route
+            // TODO: Inject optimal route that is returned from API
+            // Right now, this uses the endpoitns to get a new route with full information
+
             //Get data features from response
             var data = directions.geojson.getFeatures();
-            console.log('getFeatures()');
-            console.log(data);
-            dataSource.add(data);
+            // Add the routeLine to be rendered
+            var routeLine = data.features[0];
+            routeLine.properties.strokeColor = strokeColor;
+            routeLine.properties.strokeWidth = 5;
+            dataSource.add(routeLine, 2);
+
+            //Create the GeoJSON objects which represent the start and end points of the route.
+            var startPointMarker = new atlas.data.Feature(new atlas.data.Point([startPoint.longitude, startPoint.latitude]), {
+                title: "Start",
+                icon: "pin-blue"
+            });
+            var endPointMarker = new atlas.data.Feature(new atlas.data.Point([endPoint.longitude, endPoint.latitude]), {
+                title: "End",
+                icon: "pin-red"
+            });
+
+            //Add the data to the data source.
+            dataSource.add([startPointMarker], 1);
+            dataSource.add([endPointMarker], 0);
 
             map.setCamera({
                 bounds: data.bbox,
@@ -143,40 +174,24 @@
         // Wait until the map resources are ready.
         map.events.add('ready', async function () {
             /* Show traffic on the map using the traffic options*/
-            map.setTraffic({
-                incidents: true,
-                flow: 'absolute'
-            });
+            // map.setTraffic({
+            //     incidents: true,
+            //     flow: 'absolute'
+            // });
 
             responseData = await getRoutes();
-
+            // Create a new datasource to render objects with
             dataSource = new atlas.source.DataSource();
             map.sources.add(dataSource);
-
-            //Create the GeoJSON objects which represent the start and end points of the route.
-            var startPoint = new atlas.data.Feature(new atlas.data.Point([-122.130137, 47.644702]), {
-                title: "Redmond",
-                icon: "pin-blue"
-            });
-
-            var endPoint = new atlas.data.Feature(new atlas.data.Point([-122.3352, 47.61397]), {
-                title: "Seattle",
-                icon: "pin-round-blue"
-            });
-
-            //Add the data to the data source.
-            dataSource.add([startPoint, endPoint]);
-
-
+            //Add a layer for rendering the route lines
             var lineLayer = new atlas.layer.LineLayer(dataSource, null, {
-                strokeColor: '#2272B9',
-                strokeWidth: 5,
+                strokeColor: ['get', 'strokeColor'],
+                strokeWidth: ['get', 'strokeWidth'],
                 lineJoin: 'round',
                 lineCap: 'round'
             });
-            //Render the route line under the road labels.
             map.layers.add(lineLayer, 'labels');
-
+            // Add a layer for rendering the symbol layer.
             var symbolLayer = new atlas.layer.SymbolLayer(dataSource, null, {
                 iconOptions: {
                     image: ['get', 'icon'],
@@ -188,33 +203,9 @@
                 },
                 filter: ['any', ['==', ['geometry-type'], 'Point'], ['==', ['geometry-type'], 'MultiPoint']] //Only render Point or MultiPoints in this layer.
             });
-            map.layers.add(symbolLayer);
+            map.layers.add(symbolLayer, "symbols");
 
-            //Start and end point input to the routeURL
-            var coordinates = [[startPoint.geometry.coordinates[0],
-            startPoint.geometry.coordinates[1]],
-            [endPoint.geometry.coordinates[0],
-            endPoint.geometry.coordinates[1]]];
-
-
-            displayRoutes(responseData, map, dataSource).then(function(){console.log("success");});
-
-            // routeURL.calculateRouteDirections(atlas.service.Aborter.timeout(10000), coordinates).then((directions) => {
-            //     console.log("directions");
-            //     console.log(directions);
-
-            //     // Inject optimal route
-            //     //Get data features from response
-            //     var data = directions.geojson.getFeatures();
-            //     console.log(`getFeatures():`);
-            //     console.log(data);
-            //     dataSource.add(data);
-
-            //     map.setCamera({
-            //         bounds: data.bbox,
-            //         padding: 20
-            //     });
-            // });
+            await displayRoutes(responseData, map, dataSource);
         });
 
     </script>
