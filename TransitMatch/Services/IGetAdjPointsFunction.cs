@@ -9,6 +9,6 @@ namespace TransitMatch.Services
 {
     public interface IGetAdjPointsFunction
     {
-        List<List<RouteLegWithCost>> GetAdjPoints(RouteDirectionsResult routeDirectionsResult, String mode);
+        List<List<RoutingSegmentWithCost>> GetAdjPoints(RouteDirectionsResult routeDirectionsResult, String mode);
     }
 }

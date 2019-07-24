@@ -1,20 +1,29 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using AzureMapsToolkit.Common;
 using TransitMatch.Models;
 using TransitMatch.Services;
 
 namespace TransitMatch.Impl.CostFunctions
 {
-    public class BikeCostFunction : ICostFunction
+    public class BikeCostFunction : BaseCostFunction
     {
-        public async Task<double> GetCost(NavigationPoint start, NavigationPoint end, OptimizationParam optimizer)
+        protected override double EstimateMonetaryCost(RouteDirectionsSummary routeDirectionsSummary)
         {
-            int monetaryCost = 0; // No cost if you own a bike
-
-            // Call API from start to end to figure how much time it'll take 
-            
-
             return 0;
+        }
+
+        protected override double EstimateTimeCost(RouteDirectionsSummary routeDirectionsSummary)
+        {
+            return routeDirectionsSummary.TravelTimeInSeconds * 2;
+        }
+
+        protected override NavigationMode NavigationMode => NavigationMode.Bike;
+
+        public BikeCostFunction(IMapsService mapsService) : base(mapsService)
+        {
         }
     }
 }

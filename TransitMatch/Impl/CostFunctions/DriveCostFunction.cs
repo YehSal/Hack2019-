@@ -1,16 +1,32 @@
 ﻿using System;
 using System.Threading.Tasks;
+using AzureMapsToolkit.Common;
 using TransitMatch.Models;
 using TransitMatch.Services;
 
 namespace TransitMatch.Impl.CostFunctions
 {
-    public class DriveCostFunction : ICostFunction
+    public class DriveCostFunction : BaseCostFunction
     {
-        public async Task<double> GetCost(NavigationPoint start, NavigationPoint end, OptimizationParam optimizer)
+        private double milesPerGallon;
+        private double costPerGallon;
+
+        protected override double EstimateMonetaryCost(RouteDirectionsSummary routeDirectionsSummary)
         {
-            // TODO: Implement
-            return 0;
+            return costPerGallon * (routeDirectionsSummary.LengthInMeters / milesPerGallon * 3700);
+        }
+
+        protected override double EstimateTimeCost(RouteDirectionsSummary routeDirectionsSummary)
+        {
+            return routeDirectionsSummary.TravelTimeInSeconds;
+        }
+
+        protected override NavigationMode NavigationMode => NavigationMode.Drive;
+
+        public DriveCostFunction(IMapsService mapsService, double milesPerGallon, double costPerGallon) : base(mapsService)
+        {
+            this.milesPerGallon = milesPerGallon;
+            this.costPerGallon = costPerGallon;
         }
     }
 }

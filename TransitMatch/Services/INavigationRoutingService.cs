@@ -8,6 +8,6 @@ namespace TransitMatch.Services
 {
     public interface INavigationRoutingService
     {
-        Task<ActionResult<List<RoutingSegment>>> GetOptimalRoute(NavigationRequestParam navigationParams);
+        Task<ActionResult<List<RoutingSegmentResult>>> GetOptimalRoute(NavigationRequestParam navigationParams);
     }
 }

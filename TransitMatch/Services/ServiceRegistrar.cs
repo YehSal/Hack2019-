@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using AzureMapsToolkit;
+using Microsoft.Extensions.DependencyInjection;
 using TransitMatch.Impl;
+using TransitMatch.Impl.Azure;
 
 namespace TransitMatch.Services
 {
@@ -13,6 +15,8 @@ namespace TransitMatch.Services
             services.AddSingleton<ICostFunctionFactory, CostFunctionFactoryImpl>();
             services.AddSingleton<INavigationCostGeneratorService, NavigationCostGeneratorServiceImpl>();
             services.AddSingleton<IPathFindingService, PathFindingServiceImpl>();
+            services.AddSingleton(new KeyVaultClientFactory());
+            services.AddSingleton<IMapsService, AzureMapsService>();
         }
     }
 }
