@@ -54,9 +54,9 @@
         routes.then(function(sampleRoutes) {
             sampleRoutes.forEach(function(route) {
                 console.log("segment information");
-                console.log(route["segmentEnd"]);
-                console.log(route["segmentStart"]);
-                console.log(route["segmentNavigationMode"]);
+                console.log(route["mode"]);
+                console.log(route["routePoints"]);
+                console.log(route["cost"]);
 
                 // TODO: Call the function to put the data on the map
             });
