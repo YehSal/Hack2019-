@@ -24,4 +24,4 @@ namespace TransitMatch.Impl.CostFunctions
 
         protected override NavigationMode NavigationMode => NavigationMode.Transit;
     }
-}
+} 
