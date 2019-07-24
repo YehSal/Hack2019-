@@ -38,53 +38,32 @@
 //            }
 
 
-<<<<<<< HEAD
-            List<List<RouteLegWithCost>> AllAdjPointsWithCostAndMode = new List<List<RouteLegWithCost>>();
-            for (int i = 0; i < allLegsAdjPoints.Count; i++)
-            {
-                var legWithCostAndMode = new List<RouteLegWithCost>();
-                for (int j = 0; j < allLegsAdjPoints[i].Count; j++)
-                {
-                    if (mode == "Transit")
-                    {
-                        // Constant cost of $2 for buses
-                        legWithCostAndMode.Add(new RouteLegWithCost(allLegsAdjPoints[i][j], 2, "Transit"));
-                    }
-                    else if (mode == "Rideshare")
-                    {
-                        double initialCost = 0.9;
-                        double serviceFee = 1.9;
-                        var point1 = new GeoCoordinate(allLegsAdjPoints[i][j].Item1.Latitude, allLegsAdjPoints[i][j].Item1.Longitude) ;
-                        var long1 = allLegsAdjPoints[i][j].Item1.Longitude;
-                        var lat2 = allLegsAdjPoints[i][j].Item2.Latitude;
-                        var long2 = allLegsAdjPoints[i][j].Item2.Longitude;
-                        double costPerMile = 0.9 *
-                        legWithCostAndMode.Add(new RouteLegWithCost(allLegsAdjPoints[i][j], 10, "Rideshare"));
-                    }
-                }
-                AllAdjPointsWithCostAndMode.Add(legWithCostAndMode);
-                legWithCostAndMode = new List<RouteLegWithCost>();
-            }
-=======
-//            List<List<RoutingSegmentWithCost>> AllAdjPointsWithCostAndMode = new List<List<RoutingSegmentWithCost>>();
-//            for (int i = 0; i < allLegsAdjPoints.Count; i++)
-//            {
-//                var legWithCostAndMode = new List<RoutingSegmentWithCost>();
-//                for (int j = 0; j < allLegsAdjPoints[i].Count; j++)
-//                {
-//                    if (mode == "Transit")
-//                    {
-//                        legWithCostAndMode.Add(new RoutingSegmentWithCost(allLegsAdjPoints[i][j], 2, "Transit"));
-//                    }
-//                    else if (mode == "Rideshare")
-//                    {
-//                        legWithCostAndMode.Add(new RoutingSegmentWithCost(allLegsAdjPoints[i][j], 10, "Rideshare"));
-//                    }
-//                }
-//                AllAdjPointsWithCostAndMode.Add(legWithCostAndMode);
-//                legWithCostAndMode = new List<RoutingSegmentWithCost>();
-//            }
->>>>>>> c3607740676ca4e769fb2de67552c2e04eb401ed
+            // List<List<RouteLegWithCost>> AllAdjPointsWithCostAndMode = new List<List<RouteLegWithCost>>();
+            // for (int i = 0; i < allLegsAdjPoints.Count; i++)
+            // {
+            //     var legWithCostAndMode = new List<RouteLegWithCost>();
+            //     for (int j = 0; j < allLegsAdjPoints[i].Count; j++)
+            //     {
+            //         if (mode == "Transit")
+            //         {
+            //             // Constant cost of $2 for buses
+            //             legWithCostAndMode.Add(new RouteLegWithCost(allLegsAdjPoints[i][j], 2, "Transit"));
+            //         }
+            //         else if (mode == "Rideshare")
+            //         {
+            //             double initialCost = 0.9;
+            //             double serviceFee = 1.9;
+            //             var point1 = new GeoCoordinate(allLegsAdjPoints[i][j].Item1.Latitude, allLegsAdjPoints[i][j].Item1.Longitude) ;
+            //             var long1 = allLegsAdjPoints[i][j].Item1.Longitude;
+            //             var lat2 = allLegsAdjPoints[i][j].Item2.Latitude;
+            //             var long2 = allLegsAdjPoints[i][j].Item2.Longitude;
+            //             double costPerMile = 0.9 *
+            //             legWithCostAndMode.Add(new RouteLegWithCost(allLegsAdjPoints[i][j], 10, "Rideshare"));
+            //         }
+            //     }
+            //     AllAdjPointsWithCostAndMode.Add(legWithCostAndMode);
+            //     legWithCostAndMode = new List<RouteLegWithCost>();
+            // }
 
 //            return AllAdjPointsWithCostAndMode;
 //        }

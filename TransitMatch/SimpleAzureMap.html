@@ -199,22 +199,22 @@
 
             displayRoutes(responseData, map, dataSource).then(function(){console.log("success");});
 
-            routeURL.calculateRouteDirections(atlas.service.Aborter.timeout(10000), coordinates).then((directions) => {
-                console.log("directions");
-                console.log(directions);
+            // routeURL.calculateRouteDirections(atlas.service.Aborter.timeout(10000), coordinates).then((directions) => {
+            //     console.log("directions");
+            //     console.log(directions);
 
-                // Inject optimal route
-                //Get data features from response
-                var data = directions.geojson.getFeatures();
-                console.log(`getFeatures():`);
-                console.log(data);
-                dataSource.add(data);
+            //     // Inject optimal route
+            //     //Get data features from response
+            //     var data = directions.geojson.getFeatures();
+            //     console.log(`getFeatures():`);
+            //     console.log(data);
+            //     dataSource.add(data);
 
-                map.setCamera({
-                    bounds: data.bbox,
-                    padding: 20
-                });
-            });
+            //     map.setCamera({
+            //         bounds: data.bbox,
+            //         padding: 20
+            //     });
+            // });
         });
 
     </script>
