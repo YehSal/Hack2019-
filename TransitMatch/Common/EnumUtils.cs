@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using TransitMatch.Models;
 
 namespace TransitMatch.Common
 {
@@ -14,6 +15,29 @@ namespace TransitMatch.Common
             }
 
             return Enum.GetValues(typeof(T)).Cast<T>();
+        }
+
+        public static NavigationMode parseFromString(string mode)
+        {
+            if (!Enum.TryParse(typeof(NavigationMode), mode, true, out object resultMode))
+            {
+                switch (mode)
+                {
+                    case "car":
+                    case "Car":
+                        resultMode = NavigationMode.Rideshare;
+                        break;
+                    case "Bus":
+                    case "bus":
+                        resultMode = NavigationMode.Transit;
+                        break;
+                    default:
+                        resultMode = NavigationMode.Walk;
+                        break;
+                }
+            }
+
+            return (NavigationMode) resultMode;
         }
     }
 

@@ -7,6 +7,6 @@ namespace TransitMatch.Services
 {
     public interface ICostFunction
     {
-        Task<double> GetCost(NavigationPoint start, NavigationPoint end, OptimizationParam optimizer);
+        Task<RoutingSegmentResult> GetCost(NavigationPoint start, NavigationPoint end, OptimizationParam optimizer);
     }
 }

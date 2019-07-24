@@ -20,7 +20,7 @@ namespace TransitMatch.Controllers
 
         [EnableCors(origins: "*", headers: "*", methods: "*")]
         [HttpPost]
-        public Task<ActionResult<List<RoutingSegment>>> Post(NavigationRequestParam requestParam)
+        public Task<ActionResult<List<RoutingSegmentResult>>> Post(NavigationRequestParam requestParam)
         {
             return _navigationRoutingService.GetOptimalRoute(requestParam);
         }

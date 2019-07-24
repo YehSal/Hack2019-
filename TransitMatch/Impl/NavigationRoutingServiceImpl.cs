@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using QuickGraph;
+using QuickGraph.Serialization.DirectedGraphML;
 using TransitMatch.Common;
 using TransitMatch.Models;
 using TransitMatch.Services;
@@ -15,6 +17,7 @@ namespace TransitMatch.Impl
         private readonly IRouteSegmentationService _routeSegmentationService;
         private readonly IPathFindingService _pathFindingService;
         private readonly INavigationCostGeneratorService _navigationCostGeneratorService;
+        private readonly RoutingSegmentCache _internalCache = new RoutingSegmentCache();
 
         public NavigationRoutingServiceImpl(
             IRouteSegmentationService routeSegmentationService,
@@ -26,53 +29,45 @@ namespace TransitMatch.Impl
             _pathFindingService = pathFindingService;
         }
 
-        public async Task<ActionResult<List<RoutingSegment>>> GetOptimalRoute(NavigationRequestParam navigationParams)
+        public async Task<ActionResult<List<RoutingSegmentResult>>> GetOptimalRoute(NavigationRequestParam navigationParams)
         {
             Console.WriteLine("Finding your optimal path!");
-            var routeSegments =
-               await _routeSegmentationService.GetSegments(navigationParams.StartPoint, navigationParams.EndPoint);
-            var costMatrix = await this.GenerateCostMatrix(routeSegments, navigationParams.Optimizer);
-            var optimalRoute = _pathFindingService.GetOptimalPath(routeSegments, costMatrix);
-
+            var routeGraph =
+               await _routeSegmentationService.GetGraph(navigationParams.StartPoint, navigationParams.EndPoint);
+            var weightedGraph = await GenerateCosts(routeGraph, navigationParams.Optimizer);
+            var optimalRoute = _pathFindingService.GetOptimalPath(navigationParams.StartPoint, navigationParams.EndPoint, weightedGraph);
+            return optimalRoute.Select(segment => _internalCache.GetByKey(segment)).ToList();
             // TODO: return optimalRoute
             // TODO: Remove below test debug return
             Console.WriteLine(optimalRoute);
             Console.WriteLine(navigationParams.ToString());
-            var testResponse = new List<RoutingSegment>
+            var testResponse = new List<RoutingSegmentResult>
             {
-                new RoutingSegment(
-                    new NavigationPoint(0, 0),
-                    new NavigationPoint(10, 10),
-                    NavigationMode.Walk)
+                new RoutingSegmentResult(
+                    Models.NavigationMode.Walk.ToString(),
+                    new List<NavigationPoint>(){ new NavigationPoint(0, 0), new NavigationPoint(10,0) },
+                    0
+                    )
             };
             return testResponse;
         }
 
-        private async Task<double[,]> GenerateCostMatrix(List<Tuple<NavigationPoint, NavigationPoint>> routeSegments, OptimizationParam optimizer)
+        private async Task<AdjacencyGraph<NavigationPoint, WeightedEdge<NavigationPoint>>> GenerateCosts(
+            AdjacencyGraph<NavigationPoint, TransportEdge<NavigationPoint>> segmentedGraph, OptimizationParam optimizer)
         {
-            var navigationModes = EnumUtils.GetEnumValues<NavigationMode>() as NavigationMode[] ?? EnumUtils.GetEnumValues<NavigationMode>().ToArray();
-            var costMatrix = new double[navigationModes.Length, routeSegments.Count];
-            var costFunctionTasks = new Task<double>[navigationModes.Length * routeSegments.Count];
-            for (var i = 0; i < navigationModes.Length; i++)
-            {
-               for (var j = 0; j < routeSegments.Count; j++)
-               {
-                   var j1 = j;
-                   var i1 = i;
-                   costFunctionTasks[i * j] = Task.Run(() => _navigationCostGeneratorService.GetCostForSegment(
-                       new RoutingSegment(routeSegments[j1].Item1,
-                           routeSegments[j1].Item2,
-                           navigationModes[i1]),
-                       optimizer));
-               }
-            }
-
-            var result = await Task.WhenAll(costFunctionTasks);
-            for (var i = 0; i < result.Length; i++)
-            {
-                costMatrix[i % navigationModes.Length, i / navigationModes.Length] = result[i];
-            }
-            return costMatrix;
+            var weightedGraph = new AdjacencyGraph<NavigationPoint, WeightedEdge<NavigationPoint>>();
+            var weightingTasks = new List<Task<WeightedEdge<NavigationPoint>>>(
+                segmentedGraph.Edges.Select((async edge =>
+                {
+                    var segment = new RoutingSegment(edge.Source,
+                        edge.Target,
+                        edge.NavigationMode);
+                    var costedRoute = await _navigationCostGeneratorService.GetCostForSegment(segment, optimizer);
+                    _internalCache.Add(segment, costedRoute);
+                    return new WeightedEdge<NavigationPoint>(edge.Source, edge.Target, edge.NavigationMode, costedRoute.cost);
+                })));
+            weightedGraph.AddVerticesAndEdgeRange(await Task.WhenAll(weightingTasks));
+            return weightedGraph;
         }
     }
 }
